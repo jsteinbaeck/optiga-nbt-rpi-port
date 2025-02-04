@@ -103,11 +103,11 @@ void i2c_cyhal_destroy(ifx_protocol_t *self);
 typedef struct
 {
     /**
-     * \brief Native ModusToolbox I2C HAL instance being wrapped.
+     * \brief File descriptor of the opened I2C character device.
      *
      * \see i2c_cyhal_initialize()
      */
-    cyhal_i2c_t *native_instance;
+    int native_instance;
 
     /**
      * \brief I2C slave address currently in use.

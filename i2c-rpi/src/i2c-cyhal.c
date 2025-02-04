@@ -7,7 +7,12 @@
  */
 #include <stdlib.h>
 
-#include "cyhal.h"
+/* Raspberry PI I2C specific headers */
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
+
 
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-i2c.h"
@@ -23,17 +28,17 @@
 #define LOG_TAG I2C_CYHAL_LOG_TAG
 
 /**
- * \brief Initializes protocol object for ModusToolbox I2C HAL driver layer.
+ * \brief Initializes protocol object for Raspberry PI.
  *
  * \param[in] self Protocol object to be initialized.
- * \param[in] native_instance Native HAL I2C instance to be wrapped.
+ * \param[in] native_instance File descriptor of the opened I2C device file.
  * \param[in] slave_address Initial I2C slave address to be used.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, cyhal_i2c_t *native_instance, uint8_t slave_address)
+ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address)
 {
     // Validate parameters
-    if ((self == NULL) || (native_instance == NULL))
+    if ((self == NULL) || (native_instance == -1))
     {
         return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_ILLEGAL_ARGUMENT);
     }
@@ -66,7 +71,7 @@ ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, cyhal_i2c_t *native_inst
 }
 
 /**
- * \brief ifx_protocol_activate_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_activate_callback_t for Raspberry PI.
  *
  * \see ifx_protocol_activate_callback_t
  */
@@ -85,7 +90,7 @@ ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer,
 }
 
 /**
- * \brief ifx_protocol_transmit_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_transmit_callback_t for Raspberry PI.
  *
  * \see ifx_protocol_transmit_callback_t
  */
@@ -125,8 +130,16 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
 
     // Actually send data to I2C slave
     CHECKED_LOG(ifx_logger_log_bytes(self->_logger, LOG_TAG, IFX_LOG_INFO, ">> ", data, data_len, " "));
-    cy_rslt_t result = cyhal_i2c_master_write(properties->native_instance, properties->slave_address, data, data_len, 0U, true);
-    if (result != CY_RSLT_SUCCESS)
+
+    /* 1. Set the slave address */
+    if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
+    {
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
+        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+    }
+    
+    /* 2. Write data to I2C character file */
+    if (write(properties->native_instance, data, data_len) != data_len)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C"));
         return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
@@ -144,7 +157,7 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
 }
 
 /**
- * \brief ifx_protocol_receive_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_receive_callback_t for Raspberry PI I2C layer.
  *
  * \see ifx_protocol_receive_callback_t
  */
@@ -189,9 +202,16 @@ ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_
         return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_OUT_OF_MEMORY);
     }
 
-    // Actually read data
-    cy_rslt_t result = cyhal_i2c_master_read(properties->native_instance, properties->slave_address, *response, expected_len, 0U, true);
-    if (result != CY_RSLT_SUCCESS)
+    /* 1. Set the slave address */
+    if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
+    {
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
+        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+    }
+
+    /* 2. Read data from I2C character file */
+    /* TODO: May be making it error if expected_len != response_len is a good idea.. */
+    if (*response_len = read(properties->native_instance, *response, expected_len) == -1)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while reading data via I2C"));
         free(*response);
@@ -306,12 +326,8 @@ ifx_status_t ifx_i2c_set_clock_frequency(ifx_protocol_t *self, uint32_t frequenc
     {
         return status;
     }
-    cyhal_i2c_cfg_t i2c_cfg = {.is_slave = false, .address = 0x00U, .frequencyhal_hz = frequency_hz};
-    if (cyhal_i2c_configure(properties->native_instance, &i2c_cfg) != CY_RSLT_SUCCESS)
-    {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Internal error occurred setting I2C clock frequency"));
-        return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_SET_CLOCK_FREQUENCY, IFX_UNSPECIFIED_ERROR);
-    }
+    /* FIXME: Not possible. Set the I2C clock frequency */
+
     properties->clock_frequency_hz = frequency_hz;
     CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_INFO, "Successfully set I2C clock frequency to %lu Hz", frequency_hz));
 

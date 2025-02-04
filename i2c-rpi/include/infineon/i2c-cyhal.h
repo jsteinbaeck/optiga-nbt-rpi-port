@@ -8,8 +8,6 @@
 #ifndef INFINEON_I2C_CYHAL_H
 #define INFINEON_I2C_CYHAL_H
 
-#include "cyhal.h"
-
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-i2c.h"
 
@@ -31,11 +29,11 @@ extern "C" {
  * \brief Initializes protocol object for ModusToolbox I2C HAL driver layer.
  *
  * \param[in] self Protocol object to be initialized.
- * \param[in] native_instance Native HAL I2C instance to be wrapped.
+ * \param[in] native_instance File descriptor of the opened I2C device file.
  * \param[in] slave_address Initial I2C slave address to be used.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, cyhal_i2c_t *native_instance, uint8_t slave_address);
+ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address);
 
 #ifdef __cplusplus
 }
