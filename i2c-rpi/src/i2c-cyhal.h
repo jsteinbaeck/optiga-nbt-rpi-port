@@ -42,8 +42,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "cyhal.h"
-
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-timer.h"
@@ -53,35 +51,35 @@ extern "C" {
 #endif
 
 /**
- * \brief ifx_protocol_activate_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_activate_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_activate_callback_t
  */
 ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len);
 
 /**
- * \brief ifx_protocol_transmit_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_transmit_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_transmit_callback_t
  */
 ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len);
 
 /**
- * \brief ifx_protocol_receive_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_receive_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_receive_callback_t
  */
 ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len);
 
 /**
- * \brief ifx_protocol_destroy_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_destroy_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_destroy_callback_t
  */
 void i2c_cyhal_destroy(ifx_protocol_t *self);
 
 /**
- * \brief Protocol Layer ID for ModusToolbox I2C HAL driver layer.
+ * \brief Protocol Layer ID for Raspberry PI I2C.
  *
  * \details Used to verify that correct protocol layer has called member functionality.
  */
@@ -144,7 +142,7 @@ typedef struct
 #define IFX_I2C_CYHAL_GET_PROPERTIES (0x80U)
 
 /**
- * \brief Returns current protocol properties for of ModusToolbox I2C HAL driver layer.
+ * \brief Returns current protocol properties for of Raspberry PI I2C.
  *
  * \param[in] self Protocol stack to get protocol state for.
  * \param[out] properties_buffer Buffer to store protocol properties in.
