@@ -15,10 +15,37 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "cyhal.h"
+#include <signal.h>
+#include <unistd.h>
+#include <signal.h>
+#include <time.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-timer.h"
+
+/* Timer._start structure */
+struct posix_timer_rpi {
+    timer_t timerId;
+    struct sigevent sev;
+    struct sigaction sa;
+    struct itimerspec its;
+    bool is_timer_elapsed;
+};
+
+
+
+/**
+ * \brief Handler to execute when time elapsed. Sets the elapsed flag to true.
+*/
+static void handler(int sig, siginfo_t *si, void *uc)
+{
+    // IFX_UNUSED_VARIABLE(sig);
+    // IFX_UNUSED_VARIABLE(uc);
+    struct posix_timer_rpi *data = (struct posix_timer_rpi *) si->_sifields._rt.si_sigval.sival_ptr;
+    data->is_timer_elapsed = true;
+}
 
 /**
  * \brief Sets Timer for given amount of [us].
@@ -38,40 +65,88 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
     }
 
     // Allocate memory for timer information
-    cyhal_timer_t *cy_timer = malloc(sizeof(cyhal_timer_t));
-    if (cy_timer == NULL)
+    struct posix_timer_rpi *rpi_timer = malloc(sizeof(struct posix_timer_rpi));
+    if (rpi_timer == NULL)
     {
         return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_OUT_OF_MEMORY);
     }
 
-    // Initialize and start CYHAL timer
-    if (cyhal_timer_init(cy_timer, NC, NULL) != CY_RSLT_SUCCESS)
+    /* Interrupt initialization */
+    rpi_timer->sev.sigev_notify = SIGEV_SIGNAL; // Linux-specific
+    rpi_timer->sev.sigev_signo = SIGRTMIN;
+    rpi_timer->sev.sigev_value.sival_ptr = &rpi_timer;
+
+    /* specifies signal and handler */
+    rpi_timer->sa.sa_flags = SA_SIGINFO;
+    rpi_timer->sa.sa_sigaction = handler;
+
+    /* Start and delay initialization */
+    rpi_timer->its.it_value.tv_sec  = 0;
+    rpi_timer->its.it_value.tv_nsec = us * 1000;
+    rpi_timer->its.it_interval.tv_sec  = 0;
+    rpi_timer->its.it_interval.tv_nsec = 0;
+
+    /* Set elapsed to false */
+    rpi_timer->is_timer_elapsed = false;
+
+    // cyhal_timer_t *cy_timer = malloc(sizeof(cyhal_timer_t));
+    // if (cy_timer == NULL)
+    // {
+    //     return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_OUT_OF_MEMORY);
+    // }
+
+    /* Initialize the POSIX timer */
+    if (timer_create(CLOCK_REALTIME, &rpi_timer->sev, &rpi_timer->timerId) == 0)
     {
-        goto free_timer;
+        goto free_timer;   
     }
-    if (cyhal_timer_set_frequency(cy_timer, 1000000U) != CY_RSLT_SUCCESS)
-    {
+    
+    /* Initialize signal */
+    sigemptyset(&rpi_timer->sa.sa_mask);
+
+    /* Register signal handler */
+    if (sigaction(SIGRTMIN, &rpi_timer->sa, NULL) == -1){
         goto deinit_timer;
     }
-    cyhal_timer_cfg_t timer_config = {
-        .is_continuous = false, .direction = CYHAL_TIMER_DIR_DOWN, .is_compare = false, .period = us, .compare_value = 0U, .value = us};
-    if (cyhal_timer_configure(cy_timer, &timer_config) != CY_RSLT_SUCCESS)
-    {
-        goto deinit_timer;
-    }
-    if (cyhal_timer_start(cy_timer) != CY_RSLT_SUCCESS)
+
+    /* Start the timer */
+    if (timer_settime(rpi_timer->timerId, 0, &rpi_timer->its, NULL) != 0)
     {
         goto deinit_timer;
     }
 
+    // // Initialize and start CYHAL timer
+    // if (cyhal_timer_init(cy_timer, NC, NULL) != CY_RSLT_SUCCESS)
+    // {
+    //     goto free_timer;
+    // }
+    // if (cyhal_timer_set_frequency(cy_timer, 1000000U) != CY_RSLT_SUCCESS)
+    // {
+    //     goto deinit_timer;
+    // }
+    // cyhal_timer_cfg_t timer_config = {
+    //     .is_continuous = false, .direction = CYHAL_TIMER_DIR_DOWN, .is_compare = false, .period = us, .compare_value = 0U, .value = us};
+    // if (cyhal_timer_configure(cy_timer, &timer_config) != CY_RSLT_SUCCESS)
+    // {
+    //     goto deinit_timer;
+    // }
+    // if (cyhal_timer_start(cy_timer) != CY_RSLT_SUCCESS)
+    // {
+    //     goto deinit_timer;
+    // }
+
     // Successfully started timer
-    timer->_start = cy_timer;
+    timer->_start = rpi_timer;
     return IFX_SUCCESS;
 
 deinit_timer:
-    cyhal_timer_free(cy_timer);
+    // cyhal_timer_free(rpi_timer);
+    if (timer_delete(&rpi_timer->timerId) != 0)
+    {
+        return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_UNSPECIFIED_ERROR);
+    }
 free_timer:
-    free(cy_timer);
+    free(rpi_timer);
     return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_UNSPECIFIED_ERROR);
 }
 
@@ -91,8 +166,10 @@ bool ifx_timer_has_elapsed(const ifx_timer_t *timer)
     {
         return true;
     }
-    cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-    return cyhal_timer_read(cy_timer) == 0U;
+    // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
+    // return cyhal_timer_read(cy_timer) == 0U;
+    struct posix_timer_rpi *rpi_timer = (struct posix_timer_rpi *) timer->_start;
+    return rpi_timer->is_timer_elapsed == true;
 }
 
 /**
@@ -113,25 +190,37 @@ ifx_status_t ifx_timer_join(const ifx_timer_t *timer)
     {
         return IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_TIMER_NOT_SET);
     }
-    cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-    uint32_t remaining_us = cyhal_timer_read(cy_timer);
-    uint32_t ms_to_sleep = remaining_us / 1000U;
-    uint32_t us_to_sleep = remaining_us % 1000U;
+    
+    struct posix_timer_rpi *rpi_timer = (struct posix_timer_rpi *) timer->_start;
     ifx_status_t result = IFX_SUCCESS;
-    if (ms_to_sleep > 0U)
-    {
-        if (cyhal_system_delay_ms(ms_to_sleep) != 0U)
-        {
-            result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
-            goto cleanup;
-        }
-    }
-    if (us_to_sleep > 0)
-    {
-        cyhal_system_delay_us(us_to_sleep);
-    }
+
+    while (rpi_timer->is_timer_elapsed == false)
+        ;
+
+    // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
+    // uint32_t remaining_us = cyhal_timer_read(cy_timer);
+    // uint32_t ms_to_sleep = remaining_us / 1000U;
+    // uint32_t us_to_sleep = remaining_us % 1000U;
+    // ifx_status_t result = IFX_SUCCESS;
+    // if (ms_to_sleep > 0U)
+    // {
+    //     if (cyhal_system_delay_ms(ms_to_sleep) != 0U)
+    //     {
+    //         result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
+    //         goto cleanup;
+    //     }
+    // }
+    // if (us_to_sleep > 0)
+    // {
+    //     cyhal_system_delay_us(us_to_sleep);
+    // }
 cleanup:
-    cyhal_timer_free(cy_timer);
+    // cyhal_timer_free(cy_timer);
+    if (timer_delete(&rpi_timer->timerId) != 0)
+    {
+        result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
+    }
+
     return result;
 }
 
@@ -151,12 +240,19 @@ void ifx_timer_destroy(ifx_timer_t *timer)
 {
     if (timer != NULL)
     {
-        cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-        if (cy_timer != NULL)
+        struct posix_timer_rpi *rpi_timer = (struct posix_timer_rpi *) timer->_start;
+        if (rpi_timer != NULL)
         {
-            cyhal_timer_free(cy_timer);
-            free(cy_timer);
+            timer_delete(&rpi_timer->timerId);
+            free(rpi_timer);
         }
+
+        // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
+        // if (cy_timer != NULL)
+        // {
+        //     cyhal_timer_free(cy_timer);
+        //     free(cy_timer);
+        // }
         timer->_start = NULL;
         timer->_duration = 0U;
     }
