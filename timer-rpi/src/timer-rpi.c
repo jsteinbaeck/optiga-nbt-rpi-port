@@ -23,7 +23,6 @@
 
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-timer.h"
-#include <timer_t.h>
 
 /* Timer._start structure */
 struct posix_timer_rpi {
