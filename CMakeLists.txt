@@ -17,9 +17,6 @@ set(BUILD_DOCUMENTATION OFF)
 
 # Set the source files
 set(SOURCES
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-cyhal-rpi/src/logger-cyhal-rtos.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-cyhal-rpi/src/logger-cyhal-rtos.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/timer-freertos/src/timer-freertos.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/timer-rpi/src/timer-rpi.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.h"
@@ -28,7 +25,6 @@ set(SOURCES
 )
 
 set(HEADERS
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-cyhal-rpi/include/infineon/logger-cyhal-rtos.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/include/infineon/logger-printf.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include/infineon/i2c-cyhal.h"
 )
