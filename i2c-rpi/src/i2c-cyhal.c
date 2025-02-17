@@ -115,6 +115,7 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
     // Get protocol properties with native I2C instance
     I2CCyHALProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    int bytes_written = 0;
     if (ifx_error_check(status))
     {
         return status;
@@ -139,9 +140,9 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
     }
     
     /* 2. Write data to I2C character file */
-    if (write(properties->native_instance, data, data_len) != data_len)
+    if (bytes_written = write(properties->native_instance, data, data_len) != data_len)
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C"));
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C\nNumber of bytes written: %d", bytes_written));
         return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
@@ -326,10 +327,12 @@ ifx_status_t ifx_i2c_set_clock_frequency(ifx_protocol_t *self, uint32_t frequenc
     {
         return status;
     }
-    /* FIXME: Not possible. Set the I2C clock frequency */
 
-    properties->clock_frequency_hz = frequency_hz;
-    CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_INFO, "Successfully set I2C clock frequency to %lu Hz", frequency_hz));
+    /* Not possible to set the I2C clock frequency dynamically in RPI using i2c-dev driver */
+    if (properties->clock_frequency_hz != frequency_hz)
+    {
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_WARN, "Cannot change I2C clock frequency dynamically in RPI with i2c-dev",));
+    }
 
     return IFX_SUCCESS;
 }
