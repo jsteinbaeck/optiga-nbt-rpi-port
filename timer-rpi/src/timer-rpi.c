@@ -3,12 +3,11 @@
 
 /**
  * \file timer-cyhal.c
- * \brief Timer API implementation for NBT framework based on ModusToolbox HAL.
+ * \brief Timer API implementation for NBT framework based on Raspberry PI Linux OS.
  * \details This version uses the ModusToolbox HAL directly, for FreeRTOS-based systems timer-freertos is used.
  * \details Selection is taken based on definition of `FREERTOS` component or `NBT_TIMER_CUSTOM` macro.
  */
 
-#if (!defined(COMPONENT_FREERTOS) && !defined(NBT_TIMER_CUSTOM))
 
 #include <math.h>
 #include <stdbool.h>
@@ -24,6 +23,7 @@
 
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-timer.h"
+#include <timer_t.h>
 
 /* Timer._start structure */
 struct posix_timer_rpi {
@@ -37,12 +37,19 @@ struct posix_timer_rpi {
 
 
 /**
- * \brief Handler to execute when time elapsed. Sets the elapsed flag to true.
+ * \brief 
 */
+/**
+ * \brief Handler to execute when time elapsed. Sets the elapsed flag to true.
+ *
+ * \param[in] sig signal number of the signal being delivered
+ * \param[in] si us Timer duration in [us].
+ * \param[in] uc us Timer duration in [us].
+ */
 static void handler(int sig, siginfo_t *si, void *uc)
 {
-    // IFX_UNUSED_VARIABLE(sig);
-    // IFX_UNUSED_VARIABLE(uc);
+    (void)sig;
+    (void)uc;
     struct posix_timer_rpi *data = (struct posix_timer_rpi *) si->_sifields._rt.si_sigval.sival_ptr;
     data->is_timer_elapsed = true;
 }
@@ -74,7 +81,7 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
     /* Interrupt initialization */
     rpi_timer->sev.sigev_notify = SIGEV_SIGNAL; // Linux-specific
     rpi_timer->sev.sigev_signo = SIGRTMIN;
-    rpi_timer->sev.sigev_value.sival_ptr = &rpi_timer;
+    rpi_timer->sev.sigev_value.sival_ptr = rpi_timer;
 
     /* specifies signal and handler */
     rpi_timer->sa.sa_flags = SA_SIGINFO;
@@ -96,7 +103,7 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
     // }
 
     /* Initialize the POSIX timer */
-    if (timer_create(CLOCK_REALTIME, &rpi_timer->sev, &rpi_timer->timerId) == 0)
+    if (timer_create(CLOCK_REALTIME, &rpi_timer->sev, &rpi_timer->timerId) != 0)
     {
         goto free_timer;   
     }
@@ -141,7 +148,7 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
 
 deinit_timer:
     // cyhal_timer_free(rpi_timer);
-    if (timer_delete(&rpi_timer->timerId) != 0)
+    if (timer_delete(rpi_timer->timerId) != 0)
     {
         return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_UNSPECIFIED_ERROR);
     }
@@ -197,6 +204,7 @@ ifx_status_t ifx_timer_join(const ifx_timer_t *timer)
     while (rpi_timer->is_timer_elapsed == false)
         ;
 
+    rpi_timer->is_timer_elapsed = false;
     // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
     // uint32_t remaining_us = cyhal_timer_read(cy_timer);
     // uint32_t ms_to_sleep = remaining_us / 1000U;
@@ -216,7 +224,7 @@ ifx_status_t ifx_timer_join(const ifx_timer_t *timer)
     // }
 cleanup:
     // cyhal_timer_free(cy_timer);
-    if (timer_delete(&rpi_timer->timerId) != 0)
+    if (timer_delete(rpi_timer->timerId) != 0)
     {
         result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
     }
@@ -243,7 +251,7 @@ void ifx_timer_destroy(ifx_timer_t *timer)
         struct posix_timer_rpi *rpi_timer = (struct posix_timer_rpi *) timer->_start;
         if (rpi_timer != NULL)
         {
-            timer_delete(&rpi_timer->timerId);
+            timer_delete(rpi_timer->timerId);
             free(rpi_timer);
         }
 
@@ -257,5 +265,3 @@ void ifx_timer_destroy(ifx_timer_t *timer)
         timer->_duration = 0U;
     }
 }
-
-#endif // (!defined(COMPONENT_FREERTOS) && !defined(NBT_TIMER_CUSTOM))
