@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 [![REUSE Compliance Check](https://github.com/Infineon/optiga-nbt-lib-c/actions/workflows/linting-test.yml/badge.svg?branch=main)](https://github.com/Infineon/optiga-nbt-lib-c/actions/workflows/linting-test.yml)
 [![CMake Build](https://github.com/Infineon/optiga-nbt-lib-c/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/Infineon/optiga-nbt-lib-c/actions/workflows/cmake-single-platform.yml)
 
-This is a detailed guide on porting OPTIGA&trade; Authenticate NBT's Host Library for C to Raspberry Pi OS interacting via the I2C interface.
+This guide provides a step-by-step process for porting the OPTIGA™ Authenticate NBT's Host Library for C to Raspberry Pi OS, utilizing the I2C interface.
 
 ## Overview
 
@@ -34,29 +34,65 @@ This section contains information on how to setup and interface the OPTIGA™ Au
 | 3V3                           | 3V3                     | Power and pad supply (3V3) |
 | GND                           | GND                     | Common ground reference    |
 
-The Raspberry Pi's pins need to be connected to the OPTIGA&trade; Authenticate NBT Development Shield as shown in the table.
+The Raspberry Pi's pins need to be connected to the OPTIGA&trade; Authenticate NBT Development Shield as shown in Table 1.
 
 ### Modify confirguration file
 To change the I2C speed and baudrate on a Raspberry Pi, you need to modify the `config.txt` file. The I2C interface on the Raspberry Pi can be configured to operate at different speeds by setting appropriate parameters in this file.
 1. Open the `config.txt` file located in the `/boot` directory.
-```text
+```sh
 sudo nano /boot/config.txt
 ```
 2. To set the I2C speed, you need to add or modify the dtparam entry for the I2C bus. The parameter `i2c_arm_baudrate` is used to set the baud rate for the ARM I2C interface.
-```text
+
+Note: The I2C clock frequency cannot be changed dynamically in Raspberry Pi. So setting the clock frequency using ```ifx_i2c_set_clock_frequency``` will remain invalid and returns an error.
+```sh
 # Enable I2C interface
 dtparam=i2c_arm=on
 
-dtparam=i2c_arm_baudrate=400000
+#Set I2C speed
+dtparam=i2c_arm_baudrate=100000
 ```
 3. After saving the confirguration file, reboot the system for changes to take effect.
 
-### Development tools
-`CMake`, `GCC` and `Make` tools are commonly required for compiling and building software projects from source.
+### Toolset
+`CMake`, `GCC` and `Make` tools are required for compiling and building software projects from source on Linux platform..
 
-```text
+```sh
 #Update the package list first
 sudo apt-get update
 
+#Install the toolset
 sudo apt-get install cmake gcc make
 ```
+
+## CMake build system
+
+To build this project as a library, configure CMake and use `cmake --build` to perform the compilation.
+Here are the detailed steps for compiling and installing as library:
+
+1. Open a terminal and clone the repository from GitHub:
+```sh
+git clone <repository_url>
+```
+2. Change to the directory where the library is located:
+```sh
+cd path/to/repository
+```
+3. Now configuring the build system with CMake:
+```sh
+# Create a build folder in the root path 
+mkdir build
+cd build
+
+# Run CMake to configure the build system
+cmake -S ..
+
+# Build the code
+cmake --build .
+
+# Install the compiled library to the system 
+sudo make install
+```
+
+
+
