@@ -40,7 +40,7 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
     // Validate parameters
     if ((self == NULL) || (native_instance == -1))
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Populate object
@@ -59,7 +59,7 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
     I2CCyHALProtocolProperties *properties = malloc(sizeof(I2CCyHALProtocolProperties));
     if (properties == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
     }
     properties->native_instance = native_instance;
     properties->clock_frequency_hz = I2C_RPI_DEFAULT_CLOCK_FREQUENCY_HZ;
@@ -80,7 +80,7 @@ ifx_status_t i2c_rpi_activate(ifx_protocol_t *self, uint8_t **response_buffer, s
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_ACTIVATE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_ACTIVATE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Do not send any response
@@ -99,17 +99,17 @@ ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t 
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
     if (data == NULL)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_transmit() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
     if ((data_len == 0U) || (data_len > 0xffffffffU))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "can only send between 1 and 0xffffffff bytes (%zu requested)", data_len));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Get protocol properties with native I2C instance
@@ -136,14 +136,14 @@ ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t 
     if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
     
     /* 2. Write data to I2C character file */
     if (bytes_written = write(properties->native_instance, data, data_len) != data_len)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C\nNumber of bytes written: %d", bytes_written));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     // Start new guard time between secure element accesses
@@ -167,17 +167,17 @@ ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t 
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
     if ((expected_len == 0U) || (expected_len > 0xffffffffU) || (expected_len == IFX_PROTOCOL_RECEIVE_LEN_UNKOWN))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "can only read between 1 and 0xffffffff bytes (%zu requested)", expected_len));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
     if ((response == NULL) || (response_len == NULL))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_receive() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Get protocol properties with native I2C instance
@@ -200,14 +200,14 @@ ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t 
     *response = malloc(expected_len);
     if ((*response) == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_OUT_OF_MEMORY);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_OUT_OF_MEMORY);
     }
 
     /* 1. Set the slave address */
     if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     /* 2. Read data from I2C character file */
@@ -218,7 +218,7 @@ ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t 
         free(*response);
         *response = NULL;
         *response_len = 0U;
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     *response_len = expected_len;
@@ -487,12 +487,12 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
     if (properties_buffer == NULL)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_get_protocol_properties() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Verify that correct protocol layer called this function
@@ -500,7 +500,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
     {
         if (self->_base == NULL)
         {
-            return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+            return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
         }
         return i2c_rpi_get_protocol_properties(self->_base, properties_buffer);
     }
@@ -509,7 +509,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
     if (self->_properties == NULL)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_FATAL, "i2c_rpi_get_protocol_properties() called with uninitialized/destroyed protocol stack"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
     }
     *properties_buffer = (I2CCyHALProtocolProperties *) self->_properties;
     return IFX_SUCCESS;

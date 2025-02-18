@@ -18,7 +18,7 @@ extern "C" {
 /**
  * \brief IFX status code module identifier.
  */
-#define LIBI2CCYHAL 0x35U
+#define LIBI2CRPI 0x35U
 
 /**
  * \brief String used as source information for logging.
