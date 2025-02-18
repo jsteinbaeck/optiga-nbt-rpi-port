@@ -44,13 +44,13 @@ sudo nano /boot/config.txt
 ```
 2. To set the I2C speed, you need to add or modify the dtparam entry for the I2C bus. The parameter `i2c_arm_baudrate` is used to set the baud rate for the ARM I2C interface.
 
-Note: The I2C clock frequency cannot be changed dynamically in Raspberry Pi. So setting the clock frequency using ```ifx_i2c_set_clock_frequency``` will remain invalid and returns an error.
+Note: The I2C clock frequency cannot be changed dynamically in Raspberry Pi with i2c-dev driver. So setting the clock frequency using ```ifx_i2c_set_clock_frequency``` will not have any effect and returns success.
 ```sh
 # Enable I2C interface
 dtparam=i2c_arm=on
 
 #Set I2C speed
-dtparam=i2c_arm_baudrate=100000
+dtparam=i2c_arm_baudrate=400000
 ```
 3. After saving the confirguration file, reboot the system for changes to take effect.
 
