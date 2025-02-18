@@ -33,7 +33,7 @@ extern "C" {
  * \param[in] slave_address Initial I2C slave address to be used.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address);
+ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address);
 
 #ifdef __cplusplus
 }

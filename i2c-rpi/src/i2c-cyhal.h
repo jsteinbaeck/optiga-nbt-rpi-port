@@ -55,28 +55,28 @@ extern "C" {
  *
  * \see ifx_protocol_activate_callback_t
  */
-ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len);
+ifx_status_t i2c_rpi_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len);
 
 /**
  * \brief ifx_protocol_transmit_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_transmit_callback_t
  */
-ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len);
+ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len);
 
 /**
  * \brief ifx_protocol_receive_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_receive_callback_t
  */
-ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len);
+ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len);
 
 /**
  * \brief ifx_protocol_destroy_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_destroy_callback_t
  */
-void i2c_cyhal_destroy(ifx_protocol_t *self);
+void i2c_rpi_destroy(ifx_protocol_t *self);
 
 /**
  * \brief Protocol Layer ID for Raspberry PI I2C.
@@ -103,7 +103,7 @@ typedef struct
     /**
      * \brief File descriptor of the opened I2C character device.
      *
-     * \see i2c_cyhal_initialize()
+     * \see i2c_rpi_initialize()
      */
     int native_instance;
 
@@ -137,7 +137,7 @@ typedef struct
 } I2CCyHALProtocolProperties;
 
 /**
- * \brief IFX status encoding function identifier for private function i2c_cyhal_get_protocol_properties().
+ * \brief IFX status encoding function identifier for private function i2c_rpi_get_protocol_properties().
  */
 #define IFX_I2C_CYHAL_GET_PROPERTIES (0x80U)
 
@@ -148,7 +148,7 @@ typedef struct
  * \param[out] properties_buffer Buffer to store protocol properties in.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer);
+ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer);
 
 /**
  * \brief Starts I2C guard time to be waited between consecutive I2C accesses.
@@ -156,7 +156,7 @@ ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALPro
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_start_guard_time(I2CCyHALProtocolProperties *properties);
 
 /**
  * \brief Waits for I2C guard time to be over to be able to send / receive next I2C frame.
@@ -164,7 +164,7 @@ ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties);
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_await_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_await_guard_time(I2CCyHALProtocolProperties *properties);
 
 #ifdef __cplusplus
 }

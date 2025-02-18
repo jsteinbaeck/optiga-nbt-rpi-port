@@ -181,7 +181,7 @@ int main()
 
     /* Initialize RPI I2c driver adaptor */
     // I2C driver adapter
-    status = i2c_cyhal_initialize(&driver_adapter, i2c_fd, NBT_DEFAULT_I2C_ADDRESS);
+    status = i2c_rpi_initialize(&driver_adapter, i2c_fd, NBT_DEFAULT_I2C_ADDRESS);
     if (ifx_error_check(status))
     {
         ifx_logger_log(ifx_logger_default, LOG_TAG, IFX_LOG_ERROR, "Could not initialize I2C driver adapter");
