@@ -229,3 +229,15 @@ ret:
 }
 
 ```
+
+Save the file (main.c) and execute the following command to compile the example.
+
+```
+gcc main.c -l:liboptiga-nbt-rpi-port.a  -l:libhsw-apdu-protocol.a -l:libhsw-logger.a -l:libhsw-apdu.a -l:libhsw-protocol.a -l:libhsw-t1prime.a -l:libhsw-utils.a -l:libhsw-ndef.a -l:libhsw-crc.a -l:libhsw-ndef-bp.a -l:libhsw-apdu-nbt.a -l:libhsw-error.a -o main
+```
+
+This command will compile the main.c and links the nbt-c libraries and the nbt-rpi-port library to create final execute `main`. Once executed, you will get the following output.
+
+**Figure 1. Example code output**
+![](images/nbt-rpi-demo-output.png)
+
