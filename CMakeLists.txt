@@ -35,14 +35,6 @@ set(HEADERS
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 add_library(Infineon::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME} 
-	Infineon::hsw-error
-	Infineon::hsw-timer
-	Infineon::hsw-logger
-	Infineon::hsw-i2c
-	Infineon::hsw-protocol
-)
-
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include>"
@@ -65,12 +57,12 @@ install(
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-install(DIRECTORY include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY i2c-rpi/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY logger-printf/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
-# CMake files for find_package()
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
-              "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
+# TODO: Add optiga-nbt-lib-c as dependency.
+
+# TODO: CMake files for find_package()
 
 # CMake targets for stuff like target_link_libraries()
 install(
