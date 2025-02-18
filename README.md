@@ -64,6 +64,16 @@ sudo apt-get update
 #Install the toolset
 sudo apt-get install cmake gcc make
 ```
+## Build dependant library
+
+The application relies on ```optiga-nbt-lib-c``` which provides essential services and APIs that our application will leverage to perform its tasks. Therefore, the first step in our project is to ensure that the host library is built and functioning correctly.
+
+Steps to build the host library as a static library is available [here](https://github.com/Infineon/optiga-nbt-lib-c/blob/main/docs/userguide.md#build-as-library).
+
+After configuring and buildng the code, install the compiled library to the system:
+```sh
+sudo make install
+```
 
 ## CMake build system
 
@@ -95,10 +105,127 @@ sudo make install
 ```
 
 
-## Sample code
+## Example
 
-The example code in main.c demonstrates how to use the Infineon I2C protocol with a Raspberry Pi to communicate with an OPTIGA™ Authenticate NBT security chip using the GP T=1' protocol. 
+This example code demonstrates how to use the Infineon I2C protocol with a Raspberry Pi to communicate with an OPTIGA™ Authenticate NBT security chip using the GP T=1' protocol. 
 
 The code includes initialization of I2C communication, logging, and protocol handling and provides an example of how to send and receive data from the security chip.
 
 The command {0x00, 0xA4, 0x04, 0x00} is a standard APDU (Application Protocol Data Unit) used in smart card communication to select an application. This command tells the OPTIGA™ Authenticate NBT security chip to prepare for subsequent operations by selecting the appropriate application or file.
+
+```c
+#include "infineon/ifx-error.h"
+#include "infineon/ifx-protocol.h"
+#include "infineon/ifx-utils.h"
+#include "infineon/ifx-t1prime.h"
+#include "infineon/nbt-cmd.h"
+#include "infineon/i2c-cyhal.h"
+#include "infineon/logger-printf.h"
+
+/* Required for I2C */
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
+
+
+/* NBT slave address */
+#define NBT_DEFAULT_I2C_ADDRESS 0x18U
+#define RPI_I2C_FILE  "/dev/i2c-1"
+#define LOG_TAG "NBT example"
+
+#define RPI_I2C_OPEN_FAIL   (-1)
+#define RPI_I2C_INIT_FAIL   (-2)
+#define OPTIGA_NBT_ERROR    (-3)
+
+int main()
+{
+    /** GP T=1' I2C protocol - PSoC&trade;6 Host MCU */
+    // Protocol to handle the GP T=1' I2C protocol communication with tag
+    ifx_protocol_t gp_i2c_protocol;
+
+    // Protocol to handle communication with Raspberry PI I2C driver
+    ifx_protocol_t driver_adapter;
+    /* Initialize protocol driver layer here with I2C implementation.
+    Note: Does not work without initialized driver layer for I2C. */
+
+    /* Logger object */
+    ifx_logger_t logger_implementation;
+
+    // code placeholder
+    ifx_status_t status;
+
+    /* I2C file descriptor */
+    int i2c_fd;
+
+    /* Initialize logging */
+    status = logger_printf_initialize(ifx_logger_default);
+    if (ifx_error_check(status))
+    {
+        goto ret;
+    }
+
+    status = ifx_logger_set_level(ifx_logger_default, IFX_LOG_DEBUG);
+    if (ifx_error_check(status))
+    {
+        goto ret;
+    }
+
+    /* Open the I2C device */
+    if ((i2c_fd = open(RPI_I2C_FILE, O_RDWR)) == -1)
+    {
+        ifx_logger_log(ifx_logger_default, LOG_TAG, IFX_LOG_ERROR, "Failed to open I2C character device");
+        status = RPI_I2C_OPEN_FAIL;
+        goto ret;
+    }
+
+    /* Initialize RPI I2c driver adaptor */
+    // I2C driver adapter
+    status = i2c_cyhal_initialize(&driver_adapter, i2c_fd, NBT_DEFAULT_I2C_ADDRESS);
+    if (ifx_error_check(status))
+    {
+        ifx_logger_log(ifx_logger_default, LOG_TAG, IFX_LOG_ERROR, "Could not initialize I2C driver adapter");
+        status = RPI_I2C_INIT_FAIL;
+        goto exit;
+    }
+
+    // Use GP T=1' protocol channel as a interface to communicate with the OPTIGA&trade; Authenticate NBT
+    status = ifx_t1prime_initialize(&gp_i2c_protocol, &driver_adapter);
+    if (status != IFX_SUCCESS)
+    {
+        goto exit;
+    }
+
+    ifx_protocol_set_logger(&gp_i2c_protocol, ifx_logger_default);
+    status = ifx_protocol_activate(&gp_i2c_protocol, NULL, NULL);
+    if (status != IFX_SUCCESS)
+    {
+        goto cleanup;
+    }
+
+    // Exchange data with the secure element
+    uint8_t data[] = {0x00u, 0xa4u, 0x04u, 0x00u};
+    uint8_t *response = NULL;
+    size_t response_len = 0u;
+    status = ifx_protocol_transceive(&gp_i2c_protocol, data, sizeof(data), &response, &response_len);
+    if (response != NULL) free(response);
+    if (status != IFX_SUCCESS)
+    {
+        goto cleanup;
+    }
+
+
+cleanup:
+
+    // Perform cleanup of full protocol stack
+    ifx_protocol_destroy(&gp_i2c_protocol);
+
+exit:
+    // Close the File 
+    close(i2c_fd);
+
+ret:
+    return status;
+}
+
+```
