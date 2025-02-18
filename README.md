@@ -95,4 +95,10 @@ sudo make install
 ```
 
 
+## Sample code
 
+The example code in main.c demonstrates how to use the Infineon I2C protocol with a Raspberry Pi to communicate with an OPTIGA™ Authenticate NBT security chip using the GP T=1' protocol. 
+
+The code includes initialization of I2C communication, logging, and protocol handling and provides an example of how to send and receive data from the security chip.
+
+The command {0x00, 0xA4, 0x04, 0x00} is a standard APDU (Application Protocol Data Unit) used in smart card communication to select an application. This command tells the OPTIGA™ Authenticate NBT security chip to prepare for subsequent operations by selecting the appropriate application or file.
