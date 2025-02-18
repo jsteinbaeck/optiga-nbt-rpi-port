@@ -64,7 +64,7 @@ sudo apt-get update
 #Install the toolset
 sudo apt-get install cmake gcc make
 ```
-## Build dependant library
+## Build dependent library
 
 The application relies on ```optiga-nbt-lib-c``` which provides essential services and APIs that our application will leverage to perform its tasks. Therefore, the first step in our project is to ensure that the host library is built and functioning correctly.
 
