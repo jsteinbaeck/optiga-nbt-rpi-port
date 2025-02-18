@@ -3,7 +3,7 @@
 
 /**
  * \file i2c-cyhal.h
- * \brief Internal definitions for I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \brief Internal definitions for I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
 #ifndef I2C_CYHAL_H
 #define I2C_CYHAL_H

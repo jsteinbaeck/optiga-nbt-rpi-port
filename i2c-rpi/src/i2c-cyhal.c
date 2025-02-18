@@ -3,7 +3,7 @@
 
 /**
  * \file i2c-cyhal.c
- * \brief I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \brief I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
 #include <stdlib.h>
 
@@ -239,7 +239,7 @@ ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_
 }
 
 /**
- * \brief ifx_protocol_destroy_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_destroy_callback_t for Raspberry PI i2c-dev.
  *
  * \see ifx_protocol_destroy_callback_t
  */
@@ -476,7 +476,7 @@ ifx_status_t ifx_i2c_set_guard_time(ifx_protocol_t *self, uint32_t guard_time_us
 }
 
 /**
- * \brief Returns current protocol properties for of ModusToolbox I2C HAL driver layer.
+ * \brief Returns current protocol properties for of Raspberry Pi i2c-dev driver layer.
  *
  * \param[in] self Protocol stack to get protocol state for.
  * \param[out] properties_buffer Buffer to store protocol properties in.

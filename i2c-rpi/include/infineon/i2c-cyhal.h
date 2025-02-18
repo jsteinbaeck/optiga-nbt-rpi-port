@@ -3,7 +3,7 @@
 
 /**
  * \file infineon/i2c-cyhal.h
- * \brief I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \brief I2C driver wrapper for NBT framework based on Raspberry PI Linux OS.
  */
 #ifndef INFINEON_I2C_CYHAL_H
 #define INFINEON_I2C_CYHAL_H
@@ -26,7 +26,7 @@ extern "C" {
 #define I2C_CYHAL_LOG_TAG IFX_I2C_LOG_TAG
 
 /**
- * \brief Initializes protocol object for ModusToolbox I2C HAL driver layer.
+ * \brief Initializes protocol object for Raspberry PI Linux OS.
  *
  * \param[in] self Protocol object to be initialized.
  * \param[in] native_instance File descriptor of the opened I2C device file.

@@ -4,8 +4,7 @@
 /**
  * \file timer-cyhal.c
  * \brief Timer API implementation for NBT framework based on Raspberry PI Linux OS.
- * \details This version uses the ModusToolbox HAL directly, for FreeRTOS-based systems timer-freertos is used.
- * \details Selection is taken based on definition of `FREERTOS` component or `NBT_TIMER_CUSTOM` macro.
+ * \details This version uses the POSIX timers.
  */
 
 
@@ -95,12 +94,6 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
     /* Set elapsed to false */
     rpi_timer->is_timer_elapsed = false;
 
-    // cyhal_timer_t *cy_timer = malloc(sizeof(cyhal_timer_t));
-    // if (cy_timer == NULL)
-    // {
-    //     return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_OUT_OF_MEMORY);
-    // }
-
     /* Initialize the POSIX timer */
     if (timer_create(CLOCK_REALTIME, &rpi_timer->sev, &rpi_timer->timerId) != 0)
     {
@@ -121,32 +114,11 @@ ifx_status_t ifx_timer_set(ifx_timer_t *timer, uint64_t us)
         goto deinit_timer;
     }
 
-    // // Initialize and start CYHAL timer
-    // if (cyhal_timer_init(cy_timer, NC, NULL) != CY_RSLT_SUCCESS)
-    // {
-    //     goto free_timer;
-    // }
-    // if (cyhal_timer_set_frequency(cy_timer, 1000000U) != CY_RSLT_SUCCESS)
-    // {
-    //     goto deinit_timer;
-    // }
-    // cyhal_timer_cfg_t timer_config = {
-    //     .is_continuous = false, .direction = CYHAL_TIMER_DIR_DOWN, .is_compare = false, .period = us, .compare_value = 0U, .value = us};
-    // if (cyhal_timer_configure(cy_timer, &timer_config) != CY_RSLT_SUCCESS)
-    // {
-    //     goto deinit_timer;
-    // }
-    // if (cyhal_timer_start(cy_timer) != CY_RSLT_SUCCESS)
-    // {
-    //     goto deinit_timer;
-    // }
-
     // Successfully started timer
     timer->_start = rpi_timer;
     return IFX_SUCCESS;
 
 deinit_timer:
-    // cyhal_timer_free(rpi_timer);
     if (timer_delete(rpi_timer->timerId) != 0)
     {
         return IFX_ERROR(LIB_TIMER, IFX_TIMER_SET, IFX_UNSPECIFIED_ERROR);
@@ -172,8 +144,7 @@ bool ifx_timer_has_elapsed(const ifx_timer_t *timer)
     {
         return true;
     }
-    // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-    // return cyhal_timer_read(cy_timer) == 0U;
+
     struct posix_timer_rpi *rpi_timer = (struct posix_timer_rpi *) timer->_start;
     return rpi_timer->is_timer_elapsed == true;
 }
@@ -204,25 +175,8 @@ ifx_status_t ifx_timer_join(const ifx_timer_t *timer)
         ;
 
     rpi_timer->is_timer_elapsed = false;
-    // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-    // uint32_t remaining_us = cyhal_timer_read(cy_timer);
-    // uint32_t ms_to_sleep = remaining_us / 1000U;
-    // uint32_t us_to_sleep = remaining_us % 1000U;
-    // ifx_status_t result = IFX_SUCCESS;
-    // if (ms_to_sleep > 0U)
-    // {
-    //     if (cyhal_system_delay_ms(ms_to_sleep) != 0U)
-    //     {
-    //         result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
-    //         goto cleanup;
-    //     }
-    // }
-    // if (us_to_sleep > 0)
-    // {
-    //     cyhal_system_delay_us(us_to_sleep);
-    // }
+
 cleanup:
-    // cyhal_timer_free(cy_timer);
     if (timer_delete(rpi_timer->timerId) != 0)
     {
         result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
@@ -254,12 +208,6 @@ void ifx_timer_destroy(ifx_timer_t *timer)
             free(rpi_timer);
         }
 
-        // cyhal_timer_t *cy_timer = (cyhal_timer_t *) timer->_start;
-        // if (cy_timer != NULL)
-        // {
-        //     cyhal_timer_free(cy_timer);
-        //     free(cy_timer);
-        // }
         timer->_start = NULL;
         timer->_duration = 0U;
     }
