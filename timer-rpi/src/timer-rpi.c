@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file timer-cyhal.c
+ * \file timer-rpi.c
  * \brief Timer API implementation for NBT framework based on Raspberry PI Linux OS.
  * \details This version uses the POSIX timers.
  */

@@ -56,7 +56,7 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
     self->_destructor = i2c_rpi_destroy;
 
     // Populate protocol properties
-    I2CCyHALProtocolProperties *properties = malloc(sizeof(I2CCyHALProtocolProperties));
+    I2CRPIProtocolProperties *properties = malloc(sizeof(I2CRPIProtocolProperties));
     if (properties == NULL)
     {
         return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
@@ -113,7 +113,7 @@ ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t 
     }
 
     // Get protocol properties with native I2C instance
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     int bytes_written = 0;
     if (ifx_error_check(status))
@@ -181,7 +181,7 @@ ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t 
     }
 
     // Get protocol properties with native I2C instance
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -250,7 +250,7 @@ void i2c_rpi_destroy(ifx_protocol_t *self)
         if (self->_properties != NULL)
         {
             // Get properties casted to correct type
-            I2CCyHALProtocolProperties *properties = NULL;
+            I2CRPIProtocolProperties *properties = NULL;
             if (!ifx_error_check(i2c_rpi_get_protocol_properties(self, &properties)))
             {
                 // Stop running guard timer
@@ -286,7 +286,7 @@ ifx_status_t ifx_i2c_get_clock_frequency(ifx_protocol_t *self, uint32_t *frequen
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_CLOCK_FREQUENCY, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -321,7 +321,7 @@ ifx_status_t ifx_i2c_set_clock_frequency(ifx_protocol_t *self, uint32_t frequenc
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_SET_CLOCK_FREQUENCY, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -361,7 +361,7 @@ ifx_status_t ifx_i2c_get_slave_address(ifx_protocol_t *self, uint16_t *address_b
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_SLAVE_ADDR, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -395,7 +395,7 @@ ifx_status_t ifx_i2c_set_slave_address(ifx_protocol_t *self, uint16_t address)
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_SET_SLAVE_ADDR, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -431,7 +431,7 @@ ifx_status_t ifx_i2c_get_guard_time(ifx_protocol_t *self, uint32_t *guard_time_u
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_GUARD_TIME, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -463,7 +463,7 @@ ifx_status_t ifx_i2c_set_guard_time(ifx_protocol_t *self, uint32_t guard_time_us
 
     CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_DEBUG, "Setting I2C guard time to %lu us", guard_time_us));
 
-    I2CCyHALProtocolProperties *properties = NULL;
+    I2CRPIProtocolProperties *properties = NULL;
     ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
@@ -482,7 +482,7 @@ ifx_status_t ifx_i2c_set_guard_time(ifx_protocol_t *self, uint32_t guard_time_us
  * \param[out] properties_buffer Buffer to store protocol properties in.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer)
+ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CRPIProtocolProperties **properties_buffer)
 {
     // Validate parameters
     if (self == NULL)
@@ -511,7 +511,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_FATAL, "i2c_rpi_get_protocol_properties() called with uninitialized/destroyed protocol stack"));
         return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
     }
-    *properties_buffer = (I2CCyHALProtocolProperties *) self->_properties;
+    *properties_buffer = (I2CRPIProtocolProperties *) self->_properties;
     return IFX_SUCCESS;
 }
 
@@ -521,7 +521,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_start_guard_time(I2CCyHALProtocolProperties *properties)
+ifx_status_t i2c_rpi_start_guard_time(I2CRPIProtocolProperties *properties)
 {
     // Validate parameters
     if (properties == NULL)
@@ -549,7 +549,7 @@ ifx_status_t i2c_rpi_start_guard_time(I2CCyHALProtocolProperties *properties)
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_await_guard_time(I2CCyHALProtocolProperties *properties)
+ifx_status_t i2c_rpi_await_guard_time(I2CRPIProtocolProperties *properties)
 {
     // Validate parameters
     if (properties == NULL)

@@ -95,7 +95,7 @@ void i2c_rpi_destroy(ifx_protocol_t *self);
  */
 #define I2C_RPI_DEFAULT_GUARD_TIME_US 0U
 
-/** \struct I2CCyHALProtocolProperties
+/** \struct I2CRPIProtocolProperties
  * \brief State of I2C driver driver layer keeping track of current property values.
  */
 typedef struct
@@ -131,10 +131,10 @@ typedef struct
     /**
      * \brief Timer used to ensure guard time between I2C accesses is handled correctly.
      *
-     * \see I2CCyHALProtocolProperties.guard_time
+     * \see I2CRPIProtocolProperties.guard_time
      */
     ifx_timer_t _guard_time_timer;
-} I2CCyHALProtocolProperties;
+} I2CRPIProtocolProperties;
 
 /**
  * \brief IFX status encoding function identifier for private function i2c_rpi_get_protocol_properties().
@@ -148,7 +148,7 @@ typedef struct
  * \param[out] properties_buffer Buffer to store protocol properties in.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer);
+ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CRPIProtocolProperties **properties_buffer);
 
 /**
  * \brief Starts I2C guard time to be waited between consecutive I2C accesses.
@@ -156,7 +156,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_start_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_start_guard_time(I2CRPIProtocolProperties *properties);
 
 /**
  * \brief Waits for I2C guard time to be over to be able to send / receive next I2C frame.
@@ -164,7 +164,7 @@ ifx_status_t i2c_rpi_start_guard_time(I2CCyHALProtocolProperties *properties);
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_rpi_await_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_await_guard_time(I2CRPIProtocolProperties *properties);
 
 #ifdef __cplusplus
 }
