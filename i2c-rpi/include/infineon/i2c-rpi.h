@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file infineon/i2c-cyhal.h
+ * \file infineon/i2c-rpi.h
  * \brief I2C driver wrapper for NBT framework based on Raspberry PI Linux OS.
  */
-#ifndef INFINEON_I2C_CYHAL_H
-#define INFINEON_I2C_CYHAL_H
+#ifndef INFINEON_I2C_RPI_H
+#define INFINEON_I2C_RPI_H
 
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-i2c.h"
@@ -23,7 +23,7 @@ extern "C" {
 /**
  * \brief String used as source information for logging.
  */
-#define I2C_CYHAL_LOG_TAG IFX_I2C_LOG_TAG
+#define I2C_RPI_LOG_TAG IFX_I2C_LOG_TAG
 
 /**
  * \brief Initializes protocol object for Raspberry PI Linux OS.
@@ -39,4 +39,4 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
 }
 #endif
 
-#endif // INFINEON_I2C_CYHAL_H
+#endif // INFINEON_I2C_RPI_H

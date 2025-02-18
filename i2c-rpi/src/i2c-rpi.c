@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file i2c-cyhal.c
+ * \file i2c-rpi.c
  * \brief I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
 #include <stdlib.h>
@@ -19,13 +19,13 @@
 #include "infineon/ifx-logger.h"
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-timer.h"
-#include "infineon/i2c-cyhal.h"
-#include "i2c-cyhal.h"
+#include "infineon/i2c-rpi.h"
+#include "i2c-rpi.h"
 
 /**
  * \brief String used as source information for logging.
  */
-#define LOG_TAG I2C_CYHAL_LOG_TAG
+#define LOG_TAG I2C_RPI_LOG_TAG
 
 /**
  * \brief Initializes protocol object for Raspberry PI.
@@ -49,7 +49,7 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
     {
         return status;
     }
-    self->_layer_id = I2C_CYHAL_PROTOCOLLAYER_ID;
+    self->_layer_id = I2C_RPI_PROTOCOLLAYER_ID;
     self->_activate = i2c_rpi_activate;
     self->_transmit = i2c_rpi_transmit;
     self->_receive = i2c_rpi_receive;
@@ -62,7 +62,7 @@ ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8
         return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
     }
     properties->native_instance = native_instance;
-    properties->clock_frequency_hz = I2C_CYHAL_DEFAULT_CLOCK_FREQUENCY_HZ;
+    properties->clock_frequency_hz = I2C_RPI_DEFAULT_CLOCK_FREQUENCY_HZ;
     properties->slave_address = slave_address;
     properties->_guard_time_timer._start = NULL;
     self->_properties = properties;
@@ -487,20 +487,20 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
     if (properties_buffer == NULL)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_get_protocol_properties() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Verify that correct protocol layer called this function
-    if (self->_layer_id != I2C_CYHAL_PROTOCOLLAYER_ID)
+    if (self->_layer_id != I2C_RPI_PROTOCOLLAYER_ID)
     {
         if (self->_base == NULL)
         {
-            return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+            return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
         }
         return i2c_rpi_get_protocol_properties(self->_base, properties_buffer);
     }
@@ -509,7 +509,7 @@ ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProto
     if (self->_properties == NULL)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_FATAL, "i2c_rpi_get_protocol_properties() called with uninitialized/destroyed protocol stack"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
     }
     *properties_buffer = (I2CCyHALProtocolProperties *) self->_properties;
     return IFX_SUCCESS;

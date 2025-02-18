@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file i2c-cyhal.h
+ * \file i2c-rpi.h
  * \brief Internal definitions for I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
-#ifndef I2C_CYHAL_H
-#define I2C_CYHAL_H
+#ifndef I2C_RPI_H
+#define I2C_RPI_H
 
 #if defined(I2C_LOG_ENABLE) && (I2C_LOG_ENABLE)
 /**
@@ -83,17 +83,17 @@ void i2c_rpi_destroy(ifx_protocol_t *self);
  *
  * \details Used to verify that correct protocol layer has called member functionality.
  */
-#define I2C_CYHAL_PROTOCOLLAYER_ID 0x35U
+#define I2C_RPI_PROTOCOLLAYER_ID 0x35U
 
 /**
  * \brief Default value for I2C clock frequency in [Hz].
  */
-#define I2C_CYHAL_DEFAULT_CLOCK_FREQUENCY_HZ ((uint32_t) 400000U)
+#define I2C_RPI_DEFAULT_CLOCK_FREQUENCY_HZ ((uint32_t) 400000U)
 
 /**
  * \brief Default I2C guard time in [us].
  */
-#define I2C_CYHAL_DEFAULT_GUARD_TIME_US 0U
+#define I2C_RPI_DEFAULT_GUARD_TIME_US 0U
 
 /** \struct I2CCyHALProtocolProperties
  * \brief State of I2C driver driver layer keeping track of current property values.
@@ -139,7 +139,7 @@ typedef struct
 /**
  * \brief IFX status encoding function identifier for private function i2c_rpi_get_protocol_properties().
  */
-#define IFX_I2C_CYHAL_GET_PROPERTIES (0x80U)
+#define IFX_I2C_RPI_GET_PROPERTIES (0x80U)
 
 /**
  * \brief Returns current protocol properties for of Raspberry PI I2C.
@@ -170,4 +170,4 @@ ifx_status_t i2c_rpi_await_guard_time(I2CCyHALProtocolProperties *properties);
 }
 #endif
 
-#endif // I2C_CYHAL_H
+#endif // I2C_RPI_H
