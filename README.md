@@ -119,7 +119,7 @@ The command {0x00, 0xA4, 0x04, 0x00} is a standard APDU (Application Protocol Da
 #include "infineon/ifx-utils.h"
 #include "infineon/ifx-t1prime.h"
 #include "infineon/nbt-cmd.h"
-#include "infineon/i2c-cyhal.h"
+#include "infineon/i2c-rpi.h"
 #include "infineon/logger-printf.h"
 
 /* Required for I2C */

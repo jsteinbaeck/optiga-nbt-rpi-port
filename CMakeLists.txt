@@ -20,13 +20,13 @@ set(SOURCES
 	"${CMAKE_CURRENT_SOURCE_DIR}/timer-rpi/src/timer-rpi.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-cyhal.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-cyhal.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-rpi.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-rpi.h"
 )
 
 set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/include/infineon/logger-printf.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include/infineon/i2c-cyhal.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include/infineon/i2c-rpi.h"
 )
 
 # ##############################################################################
