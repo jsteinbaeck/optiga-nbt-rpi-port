@@ -36,6 +36,9 @@ This section contains information on how to setup and interface the OPTIGA™ Au
 
 The Raspberry Pi's pins need to be connected to the OPTIGA&trade; Authenticate NBT Development Shield as shown in Table 1.
 
+**Figure 1. I2C connections from RPi to OPTIGA&trade; Authenticate NBT Development Shield**
+![](images/nbt-rpi-pinouts.png)
+
 ### Modify confirguration file
 To change the I2C speed and baudrate on a Raspberry Pi, you need to modify the `config.txt` file. The I2C interface on the Raspberry Pi can be configured to operate at different speeds by setting appropriate parameters in this file.
 1. Open the `config.txt` file located in the `/boot` directory.
@@ -128,6 +131,7 @@ The command {0x00, 0xA4, 0x04, 0x00} is a standard APDU (Application Protocol Da
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
+#include <stdio.h>
 
 /* NBT slave address */
 #define NBT_DEFAULT_I2C_ADDRESS 0x18U
@@ -203,17 +207,53 @@ int main()
         goto cleanup;
     }
 
+    // Select Type 4 Tag application
+    uint8_t select_app[] = {0x00, 0xa4, 0x04, 0x00, 0x07, 0xd2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00};
+
+    // Select application with File ID: E1A1 and length = 1:
+    uint8_t select_aid[] = {0x00, 0xa4, 0x00, 0x0c, 0x02, 0xe1, 0xa1, 0x00};
+
+    // Write one byte (0xEE)
+    uint8_t write_file[] = {0x00, 0xd6, 0x00, 0x00, 0x01, 0xEE};
+
+    // Read back: 
+    uint8_t read_file[] = {0x00, 0xb0, 0x00, 0x00, 0x01};
+
     // Exchange data with the secure element
-    uint8_t data[] = {0x00u, 0xa4u, 0x04u, 0x00u};
-    uint8_t *response = NULL;
+
+    uint8_t *response = malloc(30);
+    for (size_t i = 0; i < 30; i++)
+    {
+        response[i] = 0;
+    }
     size_t response_len = 0u;
-    status = ifx_protocol_transceive(&gp_i2c_protocol, data, sizeof(data), &response, &response_len);
+    status = ifx_protocol_transceive(&gp_i2c_protocol, select_app, sizeof(select_app), &response, &response_len);
     if (response != NULL) free(response);
     if (status != IFX_SUCCESS)
     {
         goto cleanup;
     }
 
+    status = ifx_protocol_transceive(&gp_i2c_protocol, select_aid, sizeof(select_aid), &response, &response_len);
+    if (response != NULL) free(response);
+    if (status != IFX_SUCCESS)
+    {
+        goto cleanup;
+    }
+
+    status = ifx_protocol_transceive(&gp_i2c_protocol, write_file, sizeof(write_file), &response, &response_len);
+    if (response != NULL) free(response);
+    if (status != IFX_SUCCESS)
+    {
+        goto cleanup;
+    }
+
+    status = ifx_protocol_transceive(&gp_i2c_protocol, read_file, sizeof(read_file), &response, &response_len);
+    if (response != NULL) free(response);
+    if (status != IFX_SUCCESS)
+    {
+        goto cleanup;
+    }
 
 cleanup:
 
@@ -228,6 +268,7 @@ ret:
     return status;
 }
 
+
 ```
 
 Save the above code snippet in `main.c` and execute the following command to compile the example.
@@ -238,6 +279,5 @@ gcc main.c -l:liboptiga-nbt-rpi-port.a  -l:libhsw-apdu-protocol.a -l:libhsw-logg
 
 This command will compile the main.c and links the nbt-c libraries and the nbt-rpi-port library to create final execute `main`. Once executed, you will get the following output.
 
-**Figure 1. Example code output**
+**Figure 2. Example code output**
 ![](images/nbt-rpi-demo-output.png)
-
