@@ -42,6 +42,15 @@ target_include_directories(
          "$<INSTALL_INTERFACE:include>")
 
 
+target_link_libraries(${PROJECT_NAME} 
+	hsw-error
+	hsw-timer
+	hsw-logger
+	hsw-i2c
+	hsw-protocol
+  rt
+)
+
 # Add installation configuration
 
 # ##############################################################################
@@ -49,6 +58,12 @@ target_include_directories(
 # ##############################################################################
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
+
+# Config file to be findable by cmake
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/data/${PROJECT_NAME}-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
 
 # Main library
 install(
@@ -60,9 +75,12 @@ install(
 install(DIRECTORY i2c-rpi/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(DIRECTORY logger-printf/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
-# TODO: Add optiga-nbt-lib-c as dependency.
 
 # TODO: CMake files for find_package()
+# CMake files for find_package()
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+              "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
 
 # CMake targets for stuff like target_link_libraries()
 install(
