@@ -36,9 +36,6 @@ This section contains information on how to setup and interface the OPTIGA™ Au
 
 The Raspberry Pi's pins need to be connected to the OPTIGA&trade; Authenticate NBT Development Shield as shown in Table 1.
 
-**Figure 1. I2C connections from RPi to OPTIGA&trade; Authenticate NBT Development Shield**
-![](images/nbt-rpi-pinouts.png)
-
 ### Modify confirguration file
 To change the I2C speed and baudrate on a Raspberry Pi, you need to modify the `config.txt` file. The I2C interface on the Raspberry Pi can be configured to operate at different speeds by setting appropriate parameters in this file.
 1. Open the `config.txt` file located in the `/boot` directory.
@@ -279,5 +276,5 @@ gcc main.c -l:liboptiga-nbt-rpi-port.a  -l:libhsw-apdu-protocol.a -l:libhsw-logg
 
 This command will compile the main.c and links the nbt-c libraries and the nbt-rpi-port library to create final execute `main`. Once executed, you will get the following output.
 
-**Figure 2. Example code output**
+**Figure 1. Example code output**
 ![](images/nbt-rpi-demo-output.png)
