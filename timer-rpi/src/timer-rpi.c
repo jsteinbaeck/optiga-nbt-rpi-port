@@ -176,12 +176,6 @@ ifx_status_t ifx_timer_join(const ifx_timer_t *timer)
 
     rpi_timer->is_timer_elapsed = false;
 
-cleanup:
-    if (timer_delete(rpi_timer->timerId) != 0)
-    {
-        result = IFX_ERROR(LIB_TIMER, IFX_TIMER_JOIN, IFX_UNSPECIFIED_ERROR);
-    }
-
     return result;
 }
 
