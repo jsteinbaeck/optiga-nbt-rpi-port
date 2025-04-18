@@ -65,6 +65,12 @@ configure_package_config_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
   INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
 
+# Version file for semantic version checks
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion)
+
 # Main library
 install(
   TARGETS ${PROJECT_NAME}
@@ -76,7 +82,6 @@ install(DIRECTORY i2c-rpi/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDED
 install(DIRECTORY logger-printf/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 
-# TODO: CMake files for find_package()
 # CMake files for find_package()
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
               "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
