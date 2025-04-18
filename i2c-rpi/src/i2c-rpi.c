@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file i2c-cyhal.c
- * \brief I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \file i2c-rpi.c
+ * \brief I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
 #include <stdlib.h>
 
@@ -19,13 +19,13 @@
 #include "infineon/ifx-logger.h"
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-timer.h"
-#include "infineon/i2c-cyhal.h"
-#include "i2c-cyhal.h"
+#include "infineon/i2c-rpi.h"
+#include "i2c-rpi.h"
 
 /**
  * \brief String used as source information for logging.
  */
-#define LOG_TAG I2C_CYHAL_LOG_TAG
+#define LOG_TAG I2C_RPI_LOG_TAG
 
 /**
  * \brief Initializes protocol object for Raspberry PI.
@@ -35,12 +35,12 @@
  * \param[in] slave_address Initial I2C slave address to be used.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address)
+ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address)
 {
     // Validate parameters
     if ((self == NULL) || (native_instance == -1))
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Populate object
@@ -49,20 +49,20 @@ ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uin
     {
         return status;
     }
-    self->_layer_id = I2C_CYHAL_PROTOCOLLAYER_ID;
-    self->_activate = i2c_cyhal_activate;
-    self->_transmit = i2c_cyhal_transmit;
-    self->_receive = i2c_cyhal_receive;
-    self->_destructor = i2c_cyhal_destroy;
+    self->_layer_id = I2C_RPI_PROTOCOLLAYER_ID;
+    self->_activate = i2c_rpi_activate;
+    self->_transmit = i2c_rpi_transmit;
+    self->_receive = i2c_rpi_receive;
+    self->_destructor = i2c_rpi_destroy;
 
     // Populate protocol properties
-    I2CCyHALProtocolProperties *properties = malloc(sizeof(I2CCyHALProtocolProperties));
+    I2CRPIProtocolProperties *properties = malloc(sizeof(I2CRPIProtocolProperties));
     if (properties == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_LAYER_INITIALIZE, IFX_OUT_OF_MEMORY);
     }
     properties->native_instance = native_instance;
-    properties->clock_frequency_hz = I2C_CYHAL_DEFAULT_CLOCK_FREQUENCY_HZ;
+    properties->clock_frequency_hz = I2C_RPI_DEFAULT_CLOCK_FREQUENCY_HZ;
     properties->slave_address = slave_address;
     properties->_guard_time_timer._start = NULL;
     self->_properties = properties;
@@ -75,12 +75,12 @@ ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uin
  *
  * \see ifx_protocol_activate_callback_t
  */
-ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len)
+ifx_status_t i2c_rpi_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len)
 {
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_ACTIVATE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_ACTIVATE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Do not send any response
@@ -94,34 +94,35 @@ ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer,
  *
  * \see ifx_protocol_transmit_callback_t
  */
-ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len)
+ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len)
 {
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
     if (data == NULL)
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_cyhal_transmit() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_transmit() called with illegal NULL argument"));
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
     if ((data_len == 0U) || (data_len > 0xffffffffU))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "can only send between 1 and 0xffffffff bytes (%zu requested)", data_len));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Get protocol properties with native I2C instance
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
+    int bytes_written = 0;
     if (ifx_error_check(status))
     {
         return status;
     }
 
     // Await guard time to avoid issues with consecutive I2C requests
-    status = i2c_cyhal_await_guard_time(properties);
+    status = i2c_rpi_await_guard_time(properties);
     if (ifx_error_check(status))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Error occurred while awaiting I2C guard time"));
@@ -135,18 +136,18 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
     if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
     
     /* 2. Write data to I2C character file */
-    if (write(properties->native_instance, data, data_len) != data_len)
+    if (bytes_written = write(properties->native_instance, data, data_len) != data_len)
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while transmitting data via I2C\nNumber of bytes written: %d", bytes_written));
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     // Start new guard time between secure element accesses
-    status = i2c_cyhal_start_guard_time(properties);
+    status = i2c_rpi_start_guard_time(properties);
     if (ifx_error_check(status))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "could not start I2C guard time timer"));
@@ -161,34 +162,34 @@ ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_
  *
  * \see ifx_protocol_receive_callback_t
  */
-ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len)
+ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len)
 {
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
     if ((expected_len == 0U) || (expected_len > 0xffffffffU) || (expected_len == IFX_PROTOCOL_RECEIVE_LEN_UNKOWN))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "can only read between 1 and 0xffffffff bytes (%zu requested)", expected_len));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
     if ((response == NULL) || (response_len == NULL))
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_cyhal_receive() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_receive() called with illegal NULL argument"));
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Get protocol properties with native I2C instance
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
     }
 
     // Await guard time to avoid issues with consecutive I2C requests
-    status = i2c_cyhal_await_guard_time(properties);
+    status = i2c_rpi_await_guard_time(properties);
     if (ifx_error_check(status))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Error occurred while awaiting I2C guard time"));
@@ -199,14 +200,14 @@ ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_
     *response = malloc(expected_len);
     if ((*response) == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_RECEIVE, IFX_OUT_OF_MEMORY);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_RECEIVE, IFX_OUT_OF_MEMORY);
     }
 
     /* 1. Set the slave address */
     if (ioctl(properties->native_instance, I2C_SLAVE, properties->slave_address) < 0)
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "Unspecified error occurred while setting I2C Slave address"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     /* 2. Read data from I2C character file */
@@ -217,14 +218,14 @@ ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_
         free(*response);
         *response = NULL;
         *response_len = 0U;
-        return IFX_ERROR(LIBI2CCYHAL, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
+        return IFX_ERROR(LIBI2CRPI, IFX_PROTOCOL_TRANSMIT, IFX_UNSPECIFIED_ERROR);
     }
 
     *response_len = expected_len;
     CHECKED_LOG(ifx_logger_log_bytes(self->_logger, LOG_TAG, IFX_LOG_INFO, "<< ", *response, *response_len, " "));
 
     // Start new guard time between secure element accesses
-    status = i2c_cyhal_start_guard_time(properties);
+    status = i2c_rpi_start_guard_time(properties);
     if (ifx_error_check(status))
     {
         CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "could not start I2C guard time timer"));
@@ -238,19 +239,19 @@ ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_
 }
 
 /**
- * \brief ifx_protocol_destroy_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_destroy_callback_t for Raspberry PI i2c-dev.
  *
  * \see ifx_protocol_destroy_callback_t
  */
-void i2c_cyhal_destroy(ifx_protocol_t *self)
+void i2c_rpi_destroy(ifx_protocol_t *self)
 {
     if (self != NULL)
     {
         if (self->_properties != NULL)
         {
             // Get properties casted to correct type
-            I2CCyHALProtocolProperties *properties = NULL;
-            if (!ifx_error_check(i2c_cyhal_get_protocol_properties(self, &properties)))
+            I2CRPIProtocolProperties *properties = NULL;
+            if (!ifx_error_check(i2c_rpi_get_protocol_properties(self, &properties)))
             {
                 // Stop running guard timer
                 ifx_timer_destroy(&properties->_guard_time_timer);
@@ -285,8 +286,8 @@ ifx_status_t ifx_i2c_get_clock_frequency(ifx_protocol_t *self, uint32_t *frequen
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_CLOCK_FREQUENCY, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
@@ -320,16 +321,18 @@ ifx_status_t ifx_i2c_set_clock_frequency(ifx_protocol_t *self, uint32_t frequenc
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_SET_CLOCK_FREQUENCY, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
     }
-    /* FIXME: Not possible. Set the I2C clock frequency */
 
-    properties->clock_frequency_hz = frequency_hz;
-    CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_INFO, "Successfully set I2C clock frequency to %lu Hz", frequency_hz));
+    /* Not possible to set the I2C clock frequency dynamically in RPI using i2c-dev driver */
+    if (properties->clock_frequency_hz != frequency_hz)
+    {
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_WARN, "Cannot change I2C clock frequency dynamically in RPI with i2c-dev",));
+    }
 
     return IFX_SUCCESS;
 }
@@ -358,8 +361,8 @@ ifx_status_t ifx_i2c_get_slave_address(ifx_protocol_t *self, uint16_t *address_b
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_SLAVE_ADDR, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
@@ -392,8 +395,8 @@ ifx_status_t ifx_i2c_set_slave_address(ifx_protocol_t *self, uint16_t address)
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_SET_SLAVE_ADDR, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
@@ -428,8 +431,8 @@ ifx_status_t ifx_i2c_get_guard_time(ifx_protocol_t *self, uint32_t *guard_time_u
         return IFX_ERROR(LIB_PROTOCOL, IFX_I2C_GET_GUARD_TIME, IFX_ILLEGAL_ARGUMENT);
     }
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
@@ -460,8 +463,8 @@ ifx_status_t ifx_i2c_set_guard_time(ifx_protocol_t *self, uint32_t guard_time_us
 
     CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_DEBUG, "Setting I2C guard time to %lu us", guard_time_us));
 
-    I2CCyHALProtocolProperties *properties = NULL;
-    ifx_status_t status = i2c_cyhal_get_protocol_properties(self, &properties);
+    I2CRPIProtocolProperties *properties = NULL;
+    ifx_status_t status = i2c_rpi_get_protocol_properties(self, &properties);
     if (ifx_error_check(status))
     {
         return status;
@@ -473,42 +476,42 @@ ifx_status_t ifx_i2c_set_guard_time(ifx_protocol_t *self, uint32_t guard_time_us
 }
 
 /**
- * \brief Returns current protocol properties for of ModusToolbox I2C HAL driver layer.
+ * \brief Returns current protocol properties for of Raspberry Pi i2c-dev driver layer.
  *
  * \param[in] self Protocol stack to get protocol state for.
  * \param[out] properties_buffer Buffer to store protocol properties in.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer)
+ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CRPIProtocolProperties **properties_buffer)
 {
     // Validate parameters
     if (self == NULL)
     {
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
     if (properties_buffer == NULL)
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_cyhal_get_protocol_properties() called with illegal NULL argument"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_ERROR, "i2c_rpi_get_protocol_properties() called with illegal NULL argument"));
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_ILLEGAL_ARGUMENT);
     }
 
     // Verify that correct protocol layer called this function
-    if (self->_layer_id != I2C_CYHAL_PROTOCOLLAYER_ID)
+    if (self->_layer_id != I2C_RPI_PROTOCOLLAYER_ID)
     {
         if (self->_base == NULL)
         {
-            return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+            return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
         }
-        return i2c_cyhal_get_protocol_properties(self->_base, properties_buffer);
+        return i2c_rpi_get_protocol_properties(self->_base, properties_buffer);
     }
 
     // Verify protocol state
     if (self->_properties == NULL)
     {
-        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_FATAL, "i2c_cyhal_get_protocol_properties() called with uninitialized/destroyed protocol stack"));
-        return IFX_ERROR(LIBI2CCYHAL, IFX_I2C_CYHAL_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
+        CHECKED_LOG(ifx_logger_log(self->_logger, LOG_TAG, IFX_LOG_FATAL, "i2c_rpi_get_protocol_properties() called with uninitialized/destroyed protocol stack"));
+        return IFX_ERROR(LIBI2CRPI, IFX_I2C_RPI_GET_PROPERTIES, IFX_PROTOCOL_STACK_INVALID);
     }
-    *properties_buffer = (I2CCyHALProtocolProperties *) self->_properties;
+    *properties_buffer = (I2CRPIProtocolProperties *) self->_properties;
     return IFX_SUCCESS;
 }
 
@@ -518,7 +521,7 @@ ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALPro
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties)
+ifx_status_t i2c_rpi_start_guard_time(I2CRPIProtocolProperties *properties)
 {
     // Validate parameters
     if (properties == NULL)
@@ -546,7 +549,7 @@ ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties)
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_await_guard_time(I2CCyHALProtocolProperties *properties)
+ifx_status_t i2c_rpi_await_guard_time(I2CRPIProtocolProperties *properties)
 {
     // Validate parameters
     if (properties == NULL)

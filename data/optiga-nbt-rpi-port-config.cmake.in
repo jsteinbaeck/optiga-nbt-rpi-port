@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2024 Infineon Technologies AG
+#
+# SPDX-License-Identifier: MIT
+
+@PACKAGE_INIT@
+
+get_filename_component(optiga_nbt_rpi_port_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(CMakeFindDependencyMacro)
+find_dependency(hsw-error REQUIRED)
+find_dependency(hsw-timer REQUIRED)
+find_dependency(hsw-i2c REQUIRED)
+find_dependency(hsw-protocol REQUIRED)
+find_dependency(hsw-logger REQUIRED)
+
+if(NOT TARGET Infineon::optiga-nbt-rpi-port)
+  include("${optiga_nbt_rpi_port_CMAKE_DIR}/optiga-nbt-rpi-port-targets.cmake")
+endif()
+
+check_required_components(optiga-nbt-rpi-port)

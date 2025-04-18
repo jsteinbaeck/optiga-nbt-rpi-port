@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file infineon/i2c-cyhal.h
- * \brief I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \file infineon/i2c-rpi.h
+ * \brief I2C driver wrapper for NBT framework based on Raspberry PI Linux OS.
  */
-#ifndef INFINEON_I2C_CYHAL_H
-#define INFINEON_I2C_CYHAL_H
+#ifndef INFINEON_I2C_RPI_H
+#define INFINEON_I2C_RPI_H
 
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-i2c.h"
@@ -18,25 +18,25 @@ extern "C" {
 /**
  * \brief IFX status code module identifier.
  */
-#define LIBI2CCYHAL 0x35U
+#define LIBI2CRPI 0x35U
 
 /**
  * \brief String used as source information for logging.
  */
-#define I2C_CYHAL_LOG_TAG IFX_I2C_LOG_TAG
+#define I2C_RPI_LOG_TAG IFX_I2C_LOG_TAG
 
 /**
- * \brief Initializes protocol object for ModusToolbox I2C HAL driver layer.
+ * \brief Initializes protocol object for Raspberry PI Linux OS.
  *
  * \param[in] self Protocol object to be initialized.
  * \param[in] native_instance File descriptor of the opened I2C device file.
  * \param[in] slave_address Initial I2C slave address to be used.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address);
+ifx_status_t i2c_rpi_initialize(ifx_protocol_t *self, int native_instance, uint8_t slave_address);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // INFINEON_I2C_CYHAL_H
+#endif // INFINEON_I2C_RPI_H

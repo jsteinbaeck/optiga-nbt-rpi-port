@@ -17,24 +17,17 @@ set(BUILD_DOCUMENTATION OFF)
 
 # Set the source files
 set(SOURCES
-	"${CMAKE_CURRENT_SOURCE_DIR}/timer-freertos/src/timer-freertos.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-rpi-rtos/src/logger-cyhal-rtos.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-rpi-rtos/src/logger-cyhal-rtos.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/timer-rpi/src/timer-cyhal.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/timer-rpi/src/timer-rpi.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/src/logger-printf.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-cyhal.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-cyhal.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-rpi.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/src/i2c-rpi.h"
 )
 
 set(HEADERS
-	"${CMAKE_CURRENT_SOURCE_DIR}/logger-rpi-rtos/include/infineon/logger-cyhal-rtos.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/include/infineon/logger-printf.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include/infineon/i2c-cyhal.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include/infineon/i2c-rpi.h"
 )
-
-
-# TODO: Make it as static library
 
 # ##############################################################################
 # Library
@@ -42,13 +35,21 @@ set(HEADERS
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 add_library(Infineon::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-# TODO: Add target_link_libraries
-
 target_include_directories(
   ${PROJECT_NAME}
-  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/i2c-rpi/include>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logger-printf/include>"
          "$<INSTALL_INTERFACE:include>")
 
+
+target_link_libraries(${PROJECT_NAME} 
+	hsw-error
+	hsw-timer
+	hsw-logger
+	hsw-i2c
+	hsw-protocol
+  rt
+)
 
 # Add installation configuration
 
@@ -58,6 +59,18 @@ target_include_directories(
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
+# Config file to be findable by cmake
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/data/${PROJECT_NAME}-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
+
+# Version file for semantic version checks
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion)
+
 # Main library
 install(
   TARGETS ${PROJECT_NAME}
@@ -65,7 +78,9 @@ install(
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-install(DIRECTORY include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY i2c-rpi/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY logger-printf/include/infineon DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
 
 # CMake files for find_package()
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"

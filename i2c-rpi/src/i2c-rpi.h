@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * \file i2c-cyhal.h
- * \brief Internal definitions for I2C driver wrapper for NBT framework based on ModusToolbox HAL.
+ * \file i2c-rpi.h
+ * \brief Internal definitions for I2C driver wrapper for NBT framework based on Raspberry PI i2c-dev.
  */
-#ifndef I2C_CYHAL_H
-#define I2C_CYHAL_H
+#ifndef I2C_RPI_H
+#define I2C_RPI_H
 
 #if defined(I2C_LOG_ENABLE) && (I2C_LOG_ENABLE)
 /**
@@ -42,8 +42,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "cyhal.h"
-
 #include "infineon/ifx-error.h"
 #include "infineon/ifx-protocol.h"
 #include "infineon/ifx-timer.h"
@@ -53,51 +51,51 @@ extern "C" {
 #endif
 
 /**
- * \brief ifx_protocol_activate_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_activate_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_activate_callback_t
  */
-ifx_status_t i2c_cyhal_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len);
+ifx_status_t i2c_rpi_activate(ifx_protocol_t *self, uint8_t **response_buffer, size_t *response_len);
 
 /**
- * \brief ifx_protocol_transmit_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_transmit_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_transmit_callback_t
  */
-ifx_status_t i2c_cyhal_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len);
+ifx_status_t i2c_rpi_transmit(ifx_protocol_t *self, const uint8_t *data, size_t data_len);
 
 /**
- * \brief ifx_protocol_receive_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_receive_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_receive_callback_t
  */
-ifx_status_t i2c_cyhal_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len);
+ifx_status_t i2c_rpi_receive(ifx_protocol_t *self, size_t expected_len, uint8_t **response, size_t *response_len);
 
 /**
- * \brief ifx_protocol_destroy_callback_t for ModusToolbox I2C HAL driver layer.
+ * \brief ifx_protocol_destroy_callback_t for Raspberry PI I2C.
  *
  * \see ifx_protocol_destroy_callback_t
  */
-void i2c_cyhal_destroy(ifx_protocol_t *self);
+void i2c_rpi_destroy(ifx_protocol_t *self);
 
 /**
- * \brief Protocol Layer ID for ModusToolbox I2C HAL driver layer.
+ * \brief Protocol Layer ID for Raspberry PI I2C.
  *
  * \details Used to verify that correct protocol layer has called member functionality.
  */
-#define I2C_CYHAL_PROTOCOLLAYER_ID 0x35U
+#define I2C_RPI_PROTOCOLLAYER_ID 0x35U
 
 /**
  * \brief Default value for I2C clock frequency in [Hz].
  */
-#define I2C_CYHAL_DEFAULT_CLOCK_FREQUENCY_HZ ((uint32_t) 400000U)
+#define I2C_RPI_DEFAULT_CLOCK_FREQUENCY_HZ ((uint32_t) 400000U)
 
 /**
  * \brief Default I2C guard time in [us].
  */
-#define I2C_CYHAL_DEFAULT_GUARD_TIME_US 0U
+#define I2C_RPI_DEFAULT_GUARD_TIME_US 0U
 
-/** \struct I2CCyHALProtocolProperties
+/** \struct I2CRPIProtocolProperties
  * \brief State of I2C driver driver layer keeping track of current property values.
  */
 typedef struct
@@ -105,7 +103,7 @@ typedef struct
     /**
      * \brief File descriptor of the opened I2C character device.
      *
-     * \see i2c_cyhal_initialize()
+     * \see i2c_rpi_initialize()
      */
     int native_instance;
 
@@ -133,24 +131,24 @@ typedef struct
     /**
      * \brief Timer used to ensure guard time between I2C accesses is handled correctly.
      *
-     * \see I2CCyHALProtocolProperties.guard_time
+     * \see I2CRPIProtocolProperties.guard_time
      */
     ifx_timer_t _guard_time_timer;
-} I2CCyHALProtocolProperties;
+} I2CRPIProtocolProperties;
 
 /**
- * \brief IFX status encoding function identifier for private function i2c_cyhal_get_protocol_properties().
+ * \brief IFX status encoding function identifier for private function i2c_rpi_get_protocol_properties().
  */
-#define IFX_I2C_CYHAL_GET_PROPERTIES (0x80U)
+#define IFX_I2C_RPI_GET_PROPERTIES (0x80U)
 
 /**
- * \brief Returns current protocol properties for of ModusToolbox I2C HAL driver layer.
+ * \brief Returns current protocol properties for of Raspberry PI I2C.
  *
  * \param[in] self Protocol stack to get protocol state for.
  * \param[out] properties_buffer Buffer to store protocol properties in.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALProtocolProperties **properties_buffer);
+ifx_status_t i2c_rpi_get_protocol_properties(ifx_protocol_t *self, I2CRPIProtocolProperties **properties_buffer);
 
 /**
  * \brief Starts I2C guard time to be waited between consecutive I2C accesses.
@@ -158,7 +156,7 @@ ifx_status_t i2c_cyhal_get_protocol_properties(ifx_protocol_t *self, I2CCyHALPro
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_start_guard_time(I2CRPIProtocolProperties *properties);
 
 /**
  * \brief Waits for I2C guard time to be over to be able to send / receive next I2C frame.
@@ -166,10 +164,10 @@ ifx_status_t i2c_cyhal_start_guard_time(I2CCyHALProtocolProperties *properties);
  * \param[in] properties Protocol properties containing required information.
  * \return ifx_status_t `IFX_SUCCESS` if successful, any other value in case of error.
  */
-ifx_status_t i2c_cyhal_await_guard_time(I2CCyHALProtocolProperties *properties);
+ifx_status_t i2c_rpi_await_guard_time(I2CRPIProtocolProperties *properties);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // I2C_CYHAL_H
+#endif // I2C_RPI_H
