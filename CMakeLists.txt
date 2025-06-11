@@ -1,4 +1,7 @@
-# Version support
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 Infineon Technologies AG
+# SPDX-License-Identifier: MIT
+
+ Version support
 cmake_minimum_required(VERSION 3.14)
 
 # project configuration
